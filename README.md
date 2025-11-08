@@ -40,8 +40,37 @@ Flower is a peaceful, happy game where you explore a beautiful world and interac
 - C++17 compatible compiler
 - SDL3 (automatically downloaded if not found)
 - OpenGL
+- On Linux: X11 or Wayland development libraries
+  - Ubuntu/Debian: `sudo apt-get install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev`
+  - Or Wayland: `sudo apt-get install libwayland-dev libxkbcommon-dev libegl1-mesa-dev`
 
 ### Build Instructions
+
+```bash
+# Install dependencies (Ubuntu/Debian)
+sudo apt-get install build-essential cmake libx11-dev libxext-dev libgl1-mesa-dev
+
+# Build the project
+mkdir build
+cd build
+cmake ..
+cmake --build .
+
+# Run the game
+./bin/flower
+```
+
+### Windows Build
+
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+.\bin\Release\flower.exe
+```
+
+### macOS Build
 
 ```bash
 mkdir build
@@ -50,6 +79,13 @@ cmake ..
 cmake --build .
 ./bin/flower
 ```
+
+## Development Notes
+
+- The game uses OpenGL for 3D rendering
+- SDL3 is used for window management, input handling, and cross-platform support
+- The code is designed to be portable across Windows, macOS, and Linux
+- In headless/CI environments, SDL3 requires video driver support (X11/Wayland on Linux)
 
 ## Game Elements
 

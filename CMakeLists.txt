@@ -12,6 +12,9 @@ if(NOT SDL3_FOUND)
     message(STATUS "SDL3 not found, using FetchContent to download it")
     include(FetchContent)
     
+    # Note: In headless/CI environments, SDL3 may not build with video support
+    # For development, install X11/Wayland libraries as per SDL3 documentation
+    
     FetchContent_Declare(
         SDL3
         GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -24,6 +27,9 @@ if(NOT SDL3_FOUND)
     set(SDL_SHARED OFF CACHE BOOL "" FORCE)
     set(SDL_STATIC ON CACHE BOOL "" FORCE)
     set(SDL_TEST OFF CACHE BOOL "" FORCE)
+    # Allow building without X11/Wayland for CI/headless environments
+    set(SDL_X11_SHARED OFF CACHE BOOL "" FORCE)
+    set(SDL_WAYLAND_SHARED OFF CACHE BOOL "" FORCE)
     
     FetchContent_MakeAvailable(SDL3)
 endif()
