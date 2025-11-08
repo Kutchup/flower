@@ -118,9 +118,9 @@ bool Engine::initialize() {
         pickups.push_back(new Pickup(Vec3(20 + i * 2, 0.5f, 22), Pickup::Type::ROSE_SEEDS));
     }
     
-    // Create initial weapons (tools)
-    weapons.push_back(new Weapon(Vec3(25, 1.5f, 20), Weapon::Type::WATERING_CAN));
-    weapons.push_back(new Weapon(Vec3(27, 1.5f, 20), Weapon::Type::CAMERA));
+    // Create initial tools (tools)
+    tools.push_back(new Tool(Vec3(25, 1.5f, 20), Tool::Type::WATERING_CAN));
+    tools.push_back(new Tool(Vec3(27, 1.5f, 20), Tool::Type::CAMERA));
     
     std::cout << "Flower game initialized successfully!" << std::endl;
     std::cout << "Controls:" << std::endl;
@@ -154,11 +154,11 @@ void Engine::run() {
 }
 
 void Engine::shutdown() {
-    // Clean up weapons
-    for (auto weapon : weapons) {
-        delete weapon;
+    // Clean up tools
+    for (auto tool : tools) {
+        delete tool;
     }
-    weapons.clear();
+    tools.clear();
     
     // Clean up pickups
     for (auto pickup : pickups) {
@@ -231,12 +231,12 @@ void Engine::handleEvents() {
                                 }
                             }
                             
-                            for (auto it = weapons.begin(); it != weapons.end();) {
+                            for (auto it = tools.begin(); it != tools.end();) {
                                 Vec3 diff = (*it)->getPosition() - playerPos;
                                 if (diff.length() < 2.0f) {
                                     std::cout << "Picked up " << (*it)->getName() << "!" << std::endl;
                                     delete *it;
-                                    it = weapons.erase(it);
+                                    it = tools.erase(it);
                                 } else {
                                     ++it;
                                 }
@@ -313,9 +313,9 @@ void Engine::update(float deltaTime) {
     handleKeyboard(deltaTime);
     player.update(deltaTime);
     
-    // Update weapons
-    for (auto weapon : weapons) {
-        weapon->update(deltaTime);
+    // Update tools
+    for (auto tool : tools) {
+        tool->update(deltaTime);
     }
     
     // Update pickups
@@ -374,7 +374,7 @@ void Engine::render() {
     
     // Render world
     renderWorld();
-    renderWeapons();
+    renderTools();
     renderPickups();
     renderLimbs();
     
@@ -418,10 +418,10 @@ void Engine::renderWorld() {
     }
 }
 
-void Engine::renderWeapons() {
-    for (auto weapon : weapons) {
-        Vec3 pos = weapon->getPosition();
-        Color color = weapon->getColor();
+void Engine::renderTools() {
+    for (auto tool : tools) {
+        Vec3 pos = tool->getPosition();
+        Color color = tool->getColor();
         drawCube(pos, color, 0.3f);
     }
 }
@@ -539,4 +539,114 @@ void Engine::drawCube(const Vec3& position, const Color& color, float size) {
     glEnd();
     
     glPopMatrix();
+}
+
+// Additional helper methods for enhanced gameplay
+
+void Engine::spawnFlowerLimbs(const Vec3& flowerPosition) {
+    // Create animated limbs for a newly planted flower
+    // This makes flowers come alive with movement
+    
+    // Create stem
+    limbs.push_back(new Limb(
+        Vec3(flowerPosition.x, flowerPosition.y - 0.3f, flowerPosition.z),
+        Limb::Type::STEM,
+        Vec3(flowerPosition.x, flowerPosition.y - 0.5f, flowerPosition.z)
+    ));
+    
+    // Create petals in a circle around flower center
+    const int petalCount = 8;
+    for (int i = 0; i < petalCount; i++) {
+        float angle = (i / static_cast<float>(petalCount)) * 2.0f * 3.14159f;
+        float radius = 0.2f;
+        Vec3 petalPos = flowerPosition + Vec3(
+            std::cos(angle) * radius,
+            0,
+            std::sin(angle) * radius
+        );
+        
+        limbs.push_back(new Limb(petalPos, Limb::Type::PETAL, flowerPosition));
+    }
+    
+    // Create leaves
+    limbs.push_back(new Limb(
+        Vec3(flowerPosition.x - 0.15f, flowerPosition.y - 0.2f, flowerPosition.z),
+        Limb::Type::LEAF,
+        flowerPosition
+    ));
+    limbs.push_back(new Limb(
+        Vec3(flowerPosition.x + 0.15f, flowerPosition.y - 0.2f, flowerPosition.z),
+        Limb::Type::LEAF,
+        flowerPosition
+    ));
+}
+
+void Engine::updateWorldTime(float deltaTime) {
+    // Track game time for day/night cycles (future enhancement)
+    static float gameTime = 0.0f;
+    gameTime += deltaTime;
+    
+    // Could be used to change lighting, sky color, etc.
+}
+
+void Engine::checkPlayerObjectives() {
+    // Check if player has completed any objectives
+    int planted = player.getFlowersPlanted();
+    int watered = player.getFlowersWatered();
+    int photos = player.getPhotographsTaken();
+    
+    // Milestone notifications
+    if (planted == 10 || planted == 25 || planted == 50 || planted == 100) {
+        std::cout << "🌸 Milestone! You've planted " << planted << " flowers!" << std::endl;
+    }
+    
+    if (watered == 10 || watered == 25 || watered == 50) {
+        std::cout << "💧 Milestone! You've watered " << watered << " flowers!" << std::endl;
+    }
+    
+    if (photos == 5 || photos == 10 || photos == 25) {
+        std::cout << "📷 Milestone! You've taken " << photos << " photographs!" << std::endl;
+    }
+}
+
+float Engine::calculateFlowerDensity(int gridX, int gridZ, int radius) {
+    // Calculate how many flowers are in an area
+    // Useful for gameplay mechanics and aesthetics
+    int flowerCount = 0;
+    int totalCells = 0;
+    
+    for (int x = gridX - radius; x <= gridX + radius; x++) {
+        for (int z = gridZ - radius; z <= gridZ + radius; z++) {
+            if (world.isValidPosition(x, z)) {
+                totalCells++;
+                if (world.getCell(x, z) == WorldGrid::CellType::FLOWER) {
+                    flowerCount++;
+                }
+            }
+        }
+    }
+    
+    if (totalCells == 0) return 0.0f;
+    return static_cast<float>(flowerCount) / static_cast<float>(totalCells);
+}
+
+void Engine::generateInitialWorld() {
+    // Create an initial world with some features
+    // Add a few water spots for visual interest
+    for (int i = 0; i < 5; i++) {
+        int x = 10 + i * 8;
+        int z = 10 + i * 7;
+        if (world.isValidPosition(x, z)) {
+            world.setCell(x, z, WorldGrid::CellType::WATER);
+        }
+    }
+    
+    // Create some pre-tilled dirt patches to guide player
+    for (int x = 23; x <= 27; x++) {
+        for (int z = 23; z <= 27; z++) {
+            if (world.isValidPosition(x, z)) {
+                world.setCell(x, z, WorldGrid::CellType::DIRT);
+            }
+        }
+    }
 }

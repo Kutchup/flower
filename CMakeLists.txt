@@ -39,7 +39,7 @@ set(SOURCES
     src/main.cpp
     src/player.cpp
     src/engine.cpp
-    src/weapon.cpp
+    src/tool.cpp
     src/pickup.cpp
     src/limb.cpp
 )
@@ -47,7 +47,7 @@ set(SOURCES
 set(HEADERS
     src/player.h
     src/engine.h
-    src/weapon.h
+    src/tool.h
     src/pickup.h
     src/limb.h
     src/math_utils.h

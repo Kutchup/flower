@@ -1,7 +1,7 @@
 #pragma once
 
 #include "player.h"
-#include "weapon.h"
+#include "tool.h"
 #include "pickup.h"
 #include "limb.h"
 #include <SDL3/SDL.h>
@@ -56,7 +56,7 @@ private:
     
     // Rendering helpers
     void renderWorld();
-    void renderWeapons();
+    void renderTools();
     void renderPickups();
     void renderLimbs();
     void renderHUD();
@@ -64,13 +64,20 @@ private:
     void drawFlower(const Vec3& position, const Color& color, float size);
     void drawCube(const Vec3& position, const Color& color, float size);
     
+    // Gameplay helpers
+    void spawnFlowerLimbs(const Vec3& flowerPosition);
+    void updateWorldTime(float deltaTime);
+    void checkPlayerObjectives();
+    float calculateFlowerDensity(int gridX, int gridZ, int radius);
+    void generateInitialWorld();
+    
     SDL_Window* window;
     SDL_GLContext glContext;
     
     Player player;
     WorldGrid world;
     
-    std::vector<Weapon*> weapons;
+    std::vector<Tool*> tools;
     std::vector<Pickup*> pickups;
     std::vector<Limb*> limbs;
     
