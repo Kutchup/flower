@@ -27,8 +27,10 @@ void Player::update(float deltaTime) {
 }
 
 void Player::moveForward(float amount) {
-    // Move in the direction the player is looking (forward vector)
-    position += forward * amount;
+    // Move in the horizontal direction the player is looking (forward vector projected to XZ plane)
+    // This keeps movement on the ground plane regardless of vertical look direction
+    Vec3 horizontalForward = Vec3(forward.x, 0, forward.z).normalized();
+    position += horizontalForward * amount;
     
     // Optional: Keep player above ground level
     if (position.y < 1.7f) {
@@ -37,7 +39,8 @@ void Player::moveForward(float amount) {
 }
 
 void Player::moveRight(float amount) {
-    // Strafe movement perpendicular to forward direction
+    // Strafe movement perpendicular to forward direction on the horizontal plane
+    // Right vector is already horizontal (perpendicular to forward and world up)
     position += right * amount;
     
     // Optional: Keep player above ground level
