@@ -42,6 +42,8 @@ set(SOURCES
     src/tool.cpp
     src/pickup.cpp
     src/limb.cpp
+    src/entity.cpp
+    src/world.cpp
 )
 
 set(HEADERS
@@ -51,6 +53,8 @@ set(HEADERS
     src/pickup.h
     src/limb.h
     src/math_utils.h
+    src/entity.h
+    src/world.h
 )
 
 # Create executable

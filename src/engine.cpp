@@ -34,7 +34,8 @@ bool WorldGrid::isValidPosition(int x, int z) const {
 Engine::Engine() 
     : window(nullptr)
     , glContext(nullptr)
-    , world(50, 50)  // 50x50 grid
+    , world(50, 50)  // 50x50 grid (legacy)
+    , worldSystem(50, 50)  // New world system
     , running(false)
     , mouseCaptured(false)
     , lastTime(0)
@@ -112,6 +113,12 @@ bool Engine::initialize() {
     // Set player starting position
     player.setPosition(Vec3(25, 1.7f, 25));
     
+    // Initialize the new world system
+    worldSystem.generateFlatTerrain();  // Start with flat terrain
+    
+    // Optionally generate some hills for testing slope movement
+    // worldSystem.generateHillyTerrain(2.0f, 0.1f);
+    
     // Create some initial pickups (seeds)
     for (int i = 0; i < 5; i++) {
         pickups.push_back(new Pickup(Vec3(20 + i * 2, 0.5f, 20), Pickup::Type::SUNFLOWER_SEEDS));
@@ -130,6 +137,7 @@ bool Engine::initialize() {
     std::cout << "  Left Click - Use tool" << std::endl;
     std::cout << "  E - Pick up items" << std::endl;
     std::cout << "  ESC - Exit" << std::endl;
+    std::cout << "\nWorld system loaded with entity and slope support" << std::endl;
     
     return true;
 }
@@ -301,8 +309,7 @@ void Engine::handleEvents() {
             case SDL_EVENT_MOUSE_MOTION:
                 if (mouseCaptured) {
                     float sensitivity = 0.1f;
-                    // Negate xrel to invert horizontal look direction
-                    player.rotate(-event.motion.xrel * sensitivity, 
+                    player.rotate(event.motion.xrel * sensitivity, 
                                 -event.motion.yrel * sensitivity);
                 }
                 break;
@@ -312,7 +319,16 @@ void Engine::handleEvents() {
 
 void Engine::update(float deltaTime) {
     handleKeyboard(deltaTime);
+    
+    // Update player's standing surface normal based on their position
+    Vec3 playerPos = player.getPosition();
+    Vec3 surfaceNormal = worldSystem.getTerrainNormal(playerPos);
+    player.setStandingSurfaceNormal(surfaceNormal);
+    
     player.update(deltaTime);
+    
+    // Update world system (entities, etc.)
+    worldSystem.update(deltaTime);
     
     // Update tools
     for (auto tool : tools) {
@@ -333,10 +349,24 @@ void Engine::update(float deltaTime) {
 void Engine::handleKeyboard(float deltaTime) {
     float speed = 5.0f * deltaTime;
     
-    if (keyForward) player.moveForward(speed);
-    if (keyBackward) player.moveForward(-speed);
-    if (keyRight) player.moveRight(speed);
-    if (keyLeft) player.moveRight(-speed);
+    // Use the new slope-aware movement if the player is on a slope
+    Vec3 surfaceNormal = player.getStandingSurfaceNormal();
+    float slopeAngle = player.getStandingSlopeAngle();
+    
+    // If slope angle is significant (> 5 degrees), use slope-aware movement
+    if (slopeAngle > 5.0f) {
+        if (keyForward) player.moveForwardRelativeToSurface(speed, surfaceNormal);
+        if (keyBackward) player.moveForwardRelativeToSurface(-speed, surfaceNormal);
+        if (keyRight) player.moveRightRelativeToSurface(speed, surfaceNormal);
+        if (keyLeft) player.moveRightRelativeToSurface(-speed, surfaceNormal);
+    } else {
+        // Use standard horizontal movement on flat ground
+        if (keyForward) player.moveForward(speed);
+        if (keyBackward) player.moveForward(-speed);
+        if (keyRight) player.moveRight(speed);
+        if (keyLeft) player.moveRight(-speed);
+    }
+    
     if (keyUp) player.moveUp(speed);
     if (keyDown) player.moveUp(-speed);
 }
