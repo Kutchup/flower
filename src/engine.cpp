@@ -398,9 +398,12 @@ void Engine::render() {
         1
     };
     
-    // Simpler approach
+    // Camera transformation for FPS view
+    // Player coordinate system: yaw=0 looks +X, yaw=-90 looks -Z
+    // OpenGL default view: looking -Z
+    // We need to offset yaw by 90 degrees to align coordinate systems
     glRotatef(-player.getPitch(), 1, 0, 0);
-    glRotatef(-player.getYaw(), 0, 1, 0);
+    glRotatef(-player.getYaw() - 90.0f, 0, 1, 0);
     glTranslatef(-pos.x, -pos.y, -pos.z);
     
     // Render world
