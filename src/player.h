@@ -17,6 +17,15 @@ public:
     void moveRight(float amount);
     void moveUp(float amount);
     
+    // Advanced movement with surface normal support (for slopes)
+    void moveForwardRelativeToSurface(float amount, const Vec3& surfaceNormal);
+    void moveRightRelativeToSurface(float amount, const Vec3& surfaceNormal);
+    
+    // Surface the player is standing on
+    Vec3 getStandingSurfaceNormal() const { return standingSurfaceNormal; }
+    void setStandingSurfaceNormal(const Vec3& normal);
+    float getStandingSlopeAngle() const;
+    
     // Camera controls - first-person view rotation
     void rotate(float yaw, float pitch);
     void lookAt(const Vec3& targetPos);
@@ -71,6 +80,9 @@ private:
     // Camera rotation angles (in degrees)
     float yaw;    // Horizontal rotation
     float pitch;  // Vertical rotation
+    
+    // Surface the player is standing on (for slope support)
+    Vec3 standingSurfaceNormal;
     
     // Movement properties
     float movementSpeed;

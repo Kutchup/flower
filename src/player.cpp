@@ -12,6 +12,7 @@ Player::Player()
     , flowersPlanted(0)
     , flowersWatered(0)
     , photographsTaken(0)
+    , standingSurfaceNormal(0, 1, 0)  // Default to flat ground
 {
     updateVectors();
 }
@@ -177,4 +178,62 @@ void Player::setMovementSpeed(float speed) {
 
 float Player::getMovementSpeed() const {
     return movementSpeed;
+}
+
+void Player::setStandingSurfaceNormal(const Vec3& normal) {
+    // Update the surface normal the player is standing on
+    standingSurfaceNormal = normal.normalized();
+    
+    // Ensure it's a valid normal (not zero vector)
+    if (standingSurfaceNormal.length() < 0.01f) {
+        standingSurfaceNormal = Vec3::up();  // Default to flat ground
+    }
+}
+
+float Player::getStandingSlopeAngle() const {
+    // Calculate the angle between the surface normal and vertical up
+    Vec3 worldUp(0, 1, 0);
+    float dotProduct = Vec3::dot(standingSurfaceNormal, worldUp);
+    
+    // Clamp to valid range for acos
+    dotProduct = std::max(-1.0f, std::min(1.0f, dotProduct));
+    
+    // Convert to degrees
+    float angleRad = std::acos(dotProduct);
+    return angleRad * 180.0f / 3.14159f;
+}
+
+void Player::moveForwardRelativeToSurface(float amount, const Vec3& surfaceNormal) {
+    // Move forward relative to the surface the player is standing on
+    // This is the "difficult mathematics" for slope-aware movement
+    
+    // 1. Get the horizontal forward direction (camera forward projected to XZ plane)
+    Vec3 horizontalForward = Vec3(forward.x, 0, forward.z).normalized();
+    
+    // 2. Project this horizontal forward onto the surface plane defined by the normal
+    // This ensures movement follows the slope
+    Vec3 normalComponent = surfaceNormal * Vec3::dot(horizontalForward, surfaceNormal);
+    Vec3 surfaceForward = (horizontalForward - normalComponent).normalized();
+    
+    // 3. Move along the surface
+    position += surfaceForward * amount;
+    
+    // Note: Height adjustment relative to terrain will be handled by the engine/world
+    // This method focuses on the horizontal component of movement relative to slopes
+}
+
+void Player::moveRightRelativeToSurface(float amount, const Vec3& surfaceNormal) {
+    // Move right (strafe) relative to the surface the player is standing on
+    
+    // 1. Get the right vector (already horizontal in most cases)
+    Vec3 horizontalRight = right;
+    
+    // 2. Project the right vector onto the surface plane
+    Vec3 normalComponent = surfaceNormal * Vec3::dot(horizontalRight, surfaceNormal);
+    Vec3 surfaceRight = (horizontalRight - normalComponent).normalized();
+    
+    // 3. Move along the surface
+    position += surfaceRight * amount;
+    
+    // Note: Height adjustment relative to terrain will be handled by the engine/world
 }
