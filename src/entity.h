@@ -49,14 +49,14 @@ public:
     
     // Physics/collision
     Vec3 getVelocity() const { return velocity; }
-    void setVelocity(const Vec3& vel) { velocity = vel; }
+    void setVelocity(const Vec3& vel);
     
     float getMass() const { return mass; }
-    void setMass(float m) { mass = m; }
+    void setMass(float m);
     
     // Surface normal for slope handling
     Vec3 getSurfaceNormal() const { return surfaceNormal; }
-    void setSurfaceNormal(const Vec3& normal) { surfaceNormal = normal; }
+    void setSurfaceNormal(const Vec3& normal);
     
     // Bounding box for collision detection
     struct BoundingBox {
