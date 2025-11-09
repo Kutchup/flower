@@ -21,13 +21,15 @@ Successfully implemented a C++ SDL3 first-person camera game about flowers, fulf
 
 ### 3. Required File Structure ✅
 All required files created in `src/` directory:
-- ✅ `player.cpp` and `player.h` - First-person player controller
+- ✅ `player.cpp` and `player.h` - First-person player controller with slope-aware movement
 - ✅ `engine.cpp` and `engine.h` - Main game engine
 - ✅ `pickup.cpp` and `pickup.h` - Collectible seed system
-- ✅ `weapon.cpp` and `weapon.h` - Peaceful tools (watering can, camera, planter)
+- ✅ `tool.cpp` and `tool.h` - Peaceful tools (watering can, camera, planter)
 - ✅ `limb.cpp` and `limb.h` - Animated flower parts
 - ✅ `main.cpp` - Entry point
 - ✅ `math_utils.h` - Vector math utilities
+- ✅ `entity.cpp` and `entity.h` - NEW: Base entity class for game objects
+- ✅ `world.cpp` and `world.h` - NEW: Enhanced world system with terrain and entities
 
 ### 4. Peaceful Game Philosophy ✅
 - **No violence**: Tools replace weapons (watering can, camera, seed planter)
@@ -41,6 +43,7 @@ All required files created in `src/` directory:
 - Tool usage (left click) ✅
 - Collectible items ✅
 - Player statistics ✅
+- Advanced movement system ✅
 - BUT: No violence, only peaceful interactions ✅
 
 ### 6. Fun Gameplay Objectives ✅
@@ -78,15 +81,63 @@ flower/
 - WASD + Space/Shift movement
 - Grid position tracking
 - Statistics: flowers planted, watered, photographed
+- **NEW**: Slope-aware movement system
+  - Surface normal tracking
+  - Automatic terrain adaptation
+  - Horizontal forward movement relative to view direction
+  - Movement projection onto surface planes
 
 #### Engine System (`engine.h/cpp`)
 - SDL3 window and input management
 - OpenGL 3D rendering
 - Main game loop
 - Event handling (keyboard, mouse)
-- World grid management
-- Entity rendering (weapons, pickups, limbs)
+- World grid management (legacy)
+- **NEW**: World system integration
+- Entity rendering (tools, pickups, limbs)
 - HUD and statistics display
+- Automatic slope detection and movement mode switching
+
+#### Entity System (`entity.h/cpp`) - NEW
+- Base class for all game objects
+- Position, rotation, and scale transformations
+- Physics properties:
+  - Velocity and mass
+  - Surface normal for slope handling
+  - Bounding box collision detection
+- Entity types: Static, Dynamic, Interactive, Decorative
+- Update loop integration
+- Color and visibility management
+
+#### World System (`world.h/cpp`) - NEW
+- Enhanced terrain management
+  - Height-based terrain
+  - Automatic surface normal calculation
+  - Slope angle computation
+- Entity management:
+  - Add/remove entities
+  - Query entities by position
+  - Entity update integration
+- Prefabricated map system:
+  - Save/load custom maps
+  - Map metadata (name, description)
+  - Entity position serialization
+- Terrain generation:
+  - Flat terrain generation
+  - Hilly terrain with amplitude/frequency
+  - Random flower placement
+- Lighting system (for future versions):
+  - Point lights with radius
+  - Light attenuation
+  - Multi-light accumulation
+- Coordinate conversion:
+  - Grid to world space
+  - World to grid space
+- Physics helpers:
+  - Velocity projection onto surfaces
+  - Slope direction calculation
+  - Slope angle measurement
+
 
 #### World Grid
 - 50x50 grid (2,500 cells)
@@ -202,6 +253,49 @@ flower/
 - ✅ **Linux**: X11/Wayland support
 - ✅ **Windows**: DirectX/OpenGL support
 - ✅ **macOS**: Metal/OpenGL support
+
+## Advanced Movement System Implementation
+
+### WASD Player Movement Fix
+The W key movement has been enhanced with sophisticated mathematics to support:
+
+1. **Horizontal Forward Movement**:
+   - Player's view direction is projected onto the XZ plane
+   - Removes vertical component (looking up/down doesn't affect movement direction)
+   - Normalizes the result to maintain consistent speed
+
+2. **Slope-Aware Movement** (for future terrain with hills):
+   - Detects the surface normal of terrain beneath player
+   - Projects movement vector onto the surface plane
+   - Formula: `surfaceMovement = movement - (movement · normal) * normal`
+   - Ensures player moves along slopes naturally
+   - Maintains intended horizontal direction relative to camera
+
+3. **Automatic Mode Switching**:
+   - Engine calculates slope angle from surface normal
+   - If slope > 5°: Uses `moveForwardRelativeToSurface()`
+   - If slope ≤ 5°: Uses standard `moveForward()` for flat ground
+   - Seamless transition between movement modes
+
+4. **Mathematical Details**:
+   ```
+   Given:
+   - forward: Player's camera forward vector
+   - surfaceNormal: Normal vector of terrain surface
+   
+   Horizontal forward:
+   - hForward = normalize(forward.x, 0, forward.z)
+   
+   Surface projection:
+   - normalComponent = (hForward · surfaceNormal) * surfaceNormal
+   - surfaceForward = normalize(hForward - normalComponent)
+   
+   Final movement:
+   - position += surfaceForward * speed * deltaTime
+   ```
+
+This system provides the foundation for future versions with sloped terrain,
+hills, and complex landscapes while maintaining intuitive player control.
 
 ## Game Philosophy
 

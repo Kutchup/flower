@@ -20,8 +20,23 @@ Flower is a peaceful first-person adventure game that subverts traditional FPS m
 ### Movement System
 - **First-Person Camera**: Full 360° camera rotation with mouse
 - **WASD Movement**: Standard FPS movement controls
+  - W key moves player horizontally forward relative to their look direction
+  - Movement is projected onto the surface the player is standing on
+  - Automatic slope detection and slope-aware movement
 - **Vertical Movement**: Space/Shift for up/down (allows viewing from different angles)
 - **Grid-Based World**: Discrete grid positions for planting
+- **Slope Support**: Player movement adapts to terrain slopes
+  - Surface normals calculated from terrain heights
+  - Movement velocity projected onto surface plane
+  - Maintains horizontal forward direction relative to view
+  - Enables future support for hills and varied terrain
+
+### Advanced Movement Mathematics
+The player movement system uses sophisticated vector mathematics to ensure smooth movement on slopes:
+1. **Horizontal Forward Direction**: The player's forward view vector is projected onto the XZ plane
+2. **Surface Projection**: This horizontal direction is then projected onto the terrain surface using the surface normal
+3. **Slope-Aware Movement**: Movement follows the terrain contours while maintaining the intended horizontal direction
+4. **Automatic Mode Switching**: System automatically switches between flat and slope-aware movement based on terrain angle
 
 ### Tool System (Weapons)
 Instead of weapons, players have peaceful tools:
@@ -139,29 +154,49 @@ Players have multiple objectives to encourage exploration and creativity:
    - First-person camera controller
    - Position and orientation management
    - Statistics tracking
+   - Slope-aware movement system
+   - Surface normal tracking for terrain
 
 2. **Engine** (`engine.h/cpp`)
    - Main game loop
    - Input handling
    - Rendering system
    - World management
+   - Integration of Entity and World systems
 
 3. **WorldGrid** (in `engine.h/cpp`)
-   - Grid-based world representation
+   - Grid-based world representation (legacy)
    - Cell type management
    - Position validation
 
-4. **Weapon** (`weapon.h/cpp`)
+4. **World** (`world.h/cpp`) - NEW
+   - Enhanced world management system
+   - Terrain height and slope support
+   - Surface normal calculation for slopes
+   - Entity management
+   - Prefabricated map loading/saving
+   - Lighting system (for future versions)
+   - Grid-to-world coordinate conversion
+
+5. **Entity** (`entity.h/cpp`) - NEW
+   - Base class for all game objects
+   - Position, rotation, and scale
+   - Physics properties (velocity, mass)
+   - Surface normal for slope handling
+   - Bounding box collision detection
+   - Type system (Static, Dynamic, Interactive, Decorative)
+
+6. **Tool** (`tool.h/cpp`)
    - Tool system (peaceful mechanics)
    - Cooldown management
    - Type-specific behaviors
 
-5. **Pickup** (`pickup.h/cpp`)
+7. **Pickup** (`pickup.h/cpp`)
    - Collectible items
    - Seed types
    - Bobbing animation
 
-6. **Limb** (`limb.h/cpp`)
+8. **Limb** (`limb.h/cpp`)
    - Animated flower parts
    - Wind simulation
    - Growth animations
