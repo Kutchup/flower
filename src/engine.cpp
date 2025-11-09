@@ -301,7 +301,8 @@ void Engine::handleEvents() {
             case SDL_EVENT_MOUSE_MOTION:
                 if (mouseCaptured) {
                     float sensitivity = 0.1f;
-                    player.rotate(event.motion.xrel * sensitivity, 
+                    // Negate xrel to invert horizontal look direction
+                    player.rotate(-event.motion.xrel * sensitivity, 
                                 -event.motion.yrel * sensitivity);
                 }
                 break;
