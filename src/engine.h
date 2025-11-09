@@ -4,11 +4,12 @@
 #include "tool.h"
 #include "pickup.h"
 #include "limb.h"
+#include "world.h"
 #include <SDL3/SDL.h>
 #include <vector>
 #include <map>
 
-// Grid-based world map
+// Grid-based world map (legacy - kept for compatibility)
 class WorldGrid {
 public:
     WorldGrid(int width, int height);
@@ -45,6 +46,7 @@ public:
     
     Player& getPlayer() { return player; }
     WorldGrid& getWorld() { return world; }
+    World& getWorldSystem() { return worldSystem; }  // New world system
     
 private:
     void handleEvents();
@@ -75,7 +77,8 @@ private:
     SDL_GLContext glContext;
     
     Player player;
-    WorldGrid world;
+    WorldGrid world;         // Legacy grid system
+    World worldSystem;       // New enhanced world system with entities and slopes
     
     std::vector<Tool*> tools;
     std::vector<Pickup*> pickups;
